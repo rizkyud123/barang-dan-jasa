@@ -10,11 +10,15 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-# 🔑 Ambil kredensial dari Streamlit Secrets (BUKAN file lokal)
-creds = Credentials.from_service_account_info(
-    st.secrets["gcp_service_account"], scopes=SCOPES
-)
-client = gspread.authorize(creds)
+# 🔑 Ambil kredensial dari Streamlit Secrets
+try:
+    creds = Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"], scopes=SCOPES
+    )
+    client = gspread.authorize(creds)
+except Exception as e:
+    st.error(f"❌ Gagal autentikasi ke Google Sheets: {e}")
+    st.stop()
 
 # Ganti dengan Spreadsheet ID kamu
 SPREADSHEET_ID = "15-I60dvETnknwpONxl3HtZS2Pm-vb2P33Kw7LMc_ThQ"
@@ -30,6 +34,7 @@ menu = st.sidebar.radio("Pilih Menu", ["Dashboard", "Analisa"])
 
 # ================= DASHBOARD =================
 if menu == "Dashboard":
+    # sheet yang boleh dipilih
     allowed_sheets = ["bun", "nak", "psp", "tph"]
     sheet_titles = [ws.title for ws in spreadsheet.worksheets() if ws.title.lower() in allowed_sheets]
 
