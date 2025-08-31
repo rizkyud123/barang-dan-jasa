@@ -5,15 +5,19 @@ import pandas as pd
 from analisa import run_analisa  # ambil fungsi analisa dari analisa.py
 
 # === Konfigurasi Google Sheets API ===
-SERVICE_ACCOUNT_FILE = r"C:/Users/USER/Downloads/barang dan jasa/credentials.json"
-SPREADSHEET_ID = "15-I60dvETnknwpONxl3HtZS2Pm-vb2P33Kw7LMc_ThQ"
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+# 🔑 Ambil kredensial dari Streamlit Secrets (BUKAN file lokal)
+creds = Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"], scopes=SCOPES
+)
 client = gspread.authorize(creds)
+
+# Ganti dengan Spreadsheet ID kamu
+SPREADSHEET_ID = "15-I60dvETnknwpONxl3HtZS2Pm-vb2P33Kw7LMc_ThQ"
 spreadsheet = client.open_by_key(SPREADSHEET_ID)
 
 # === Setup Streamlit ===
@@ -32,11 +36,11 @@ if menu == "Dashboard":
     selected = st.sidebar.radio("Pilih Sub-Bidang / Sheet", sheet_titles)
     worksheet = spreadsheet.worksheet(selected)
 
-    # === Ambil Data Google Sheets (hanya sekali, jika session kosong) ===
+    # === Ambil Data Google Sheets (sekali saja) ===
     if f"original_data_{selected}" not in st.session_state:
         raw_data = worksheet.get_all_values()
-        header_rows = raw_data[:4]
-        data_rows = raw_data[4:]
+        header_rows = raw_data[:4]   # header baris 1–4
+        data_rows = raw_data[4:]     # mulai baris 5
 
         # Gabung header multi-baris
         combined_headers = []
@@ -46,7 +50,7 @@ if menu == "Dashboard":
                 merged = "Kolom"
             combined_headers.append(merged)
 
-        # Header unik
+        # Header unik (hindari duplikat)
         unique_headers = []
         seen = {}
         for h in combined_headers:
