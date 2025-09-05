@@ -92,7 +92,20 @@ if menu == "Dashboard":
 
     st.subheader(f"📌 Data: {selected.upper()}")
 
-    # === Data Editor (editable) ===
+    # === Highlight untuk sheet 'bun' ===
+    if selected.lower() == "bun":
+        highlight_rows = [5, 6, 7, 66, 67, 68, 75, 76, 77, 84, 85, 86]
+        highlight_index = [r - 5 for r in highlight_rows]  # shift index (karena header 4 baris)
+
+        def highlight_row(x):
+            return ['background-color: yellow' if x.name in highlight_index else '' for _ in x]
+
+        styled_df = st.session_state[f"edited_df_{selected}"].style.apply(highlight_row, axis=1)
+
+        st.info("🔎 Tampilan dengan highlight kuning pada baris tertentu (tidak bisa diedit):")
+        st.dataframe(styled_df, use_container_width=True)
+
+    # === Data Editor (editable tanpa highlight) ===
     st.session_state[f"edited_df_{selected}"] = st.data_editor(
         st.session_state[f"edited_df_{selected}"],
         num_rows="dynamic",
